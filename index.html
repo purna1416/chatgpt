@@ -3,17 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ResumeForge — Resume Maker</title>
+    <title>ResumeForge Pro — Advanced Resume Maker</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div>
-        <h1>ResumeForge</h1>
-        <p>Build a professional resume in minutes</p>
+        <h1>ResumeForge Pro</h1>
+        <p>Create a proficient, ATS-friendly resume with AI guidance</p>
       </div>
       <div class="topbar-actions">
-        <button id="templateToggle" class="secondary">Switch Template</button>
+        <label class="inline-control">
+          Template
+          <select id="templateSelect"></select>
+        </label>
         <button id="clearAll" class="danger">Clear</button>
       </div>
     </header>
@@ -25,7 +28,7 @@
           <fieldset>
             <legend>Personal Details</legend>
             <label>Full Name <input name="fullName" required placeholder="Alex Morgan" /></label>
-            <label>Professional Title <input name="title" placeholder="Frontend Developer" /></label>
+            <label>Professional Title <input name="title" placeholder="Senior Frontend Engineer" /></label>
             <label>Email <input type="email" name="email" placeholder="alex@email.com" /></label>
             <label>Phone <input name="phone" placeholder="+1 111 222 3333" /></label>
             <label>Location <input name="location" placeholder="San Francisco, CA" /></label>
@@ -67,6 +70,22 @@
             <label>Year <input name="eduYear" placeholder="2021" /></label>
           </fieldset>
 
+          <fieldset>
+            <legend>AI Resume Assistant</legend>
+            <div class="action-row">
+              <button type="button" id="analyzeResume" class="secondary">Analyze Resume</button>
+              <button type="button" id="improveSummary">Improve Summary</button>
+              <button type="button" id="improveHighlights" class="secondary">Improve Highlights</button>
+              <button type="button" id="proGenerate">Generate Pro Profile</button>
+            </div>
+            <label>Ask Assistant
+              <input id="assistantPrompt" placeholder="e.g. How can I improve ATS score for frontend roles?" />
+            </label>
+            <button type="button" id="askAssistant" class="secondary">Ask</button>
+            <div id="assistantResponse" class="assistant-response muted">Assistant tips will appear here.</div>
+            <ul id="suggestionList" class="suggestion-list"></ul>
+          </fieldset>
+
           <div class="action-row">
             <button type="button" id="downloadJson" class="secondary">Download JSON</button>
             <label class="upload-button secondary">
@@ -78,14 +97,14 @@
         </form>
       </section>
 
-      <section class="preview card" id="previewContainer">
+      <section class="preview card">
         <h2>Live Preview</h2>
-        <article id="resumePreview" class="template-modern"></article>
+        <article id="resumePreview" class="template-cobalt"></article>
       </section>
     </main>
 
     <footer>
-      <p>Autosaves locally every time you type.</p>
+      <p>Autosaves locally as you type. 12 templates + AI assistant included.</p>
     </footer>
 
     <script src="script.js"></script>
