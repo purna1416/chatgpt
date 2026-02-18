@@ -5,43 +5,32 @@ const printBtn = document.getElementById('printResume');
 const downloadJsonBtn = document.getElementById('downloadJson');
 const uploadJsonInput = document.getElementById('uploadJson');
 const templateSelect = document.getElementById('templateSelect');
+const templateCount = document.getElementById('templateCount');
+
 const analyzeResumeBtn = document.getElementById('analyzeResume');
 const improveSummaryBtn = document.getElementById('improveSummary');
 const improveHighlightsBtn = document.getElementById('improveHighlights');
-const proGenerateBtn = document.getElementById('proGenerate');
-const askAssistantBtn = document.getElementById('askAssistant');
-const assistantPromptInput = document.getElementById('assistantPrompt');
-const assistantResponse = document.getElementById('assistantResponse');
-const suggestionList = document.getElementById('suggestionList');
+const aiFeedback = document.getElementById('aiFeedback');
 
 const STORAGE_KEY = 'resumeforge-data-v2';
 const TEMPLATE_KEY = 'resumeforge-template-v2';
 
 const templates = [
-  { id: 'cobalt', name: 'Cobalt Professional' },
-  { id: 'minimal', name: 'Minimal Serif' },
-  { id: 'onyx', name: 'Onyx Executive' },
-  { id: 'emerald', name: 'Emerald Clean' },
-  { id: 'sunset', name: 'Sunset Accent' },
-  { id: 'slate', name: 'Slate Corporate' },
-  { id: 'royal', name: 'Royal Blue ATS' },
-  { id: 'graphite', name: 'Graphite Mono' },
-  { id: 'violet', name: 'Violet Creative' },
-  { id: 'forest', name: 'Forest Premium' },
-  { id: 'ruby', name: 'Ruby Distinct' },
-  { id: 'arctic', name: 'Arctic Modern' },
+  { id: 'template-modern', name: 'Modern' },
+  { id: 'template-minimal', name: 'Minimal' },
+  { id: 'template-classic', name: 'Classic' },
+  { id: 'template-corporate', name: 'Corporate' },
+  { id: 'template-elegant', name: 'Elegant' },
+  { id: 'template-creative', name: 'Creative' },
+  { id: 'template-compact', name: 'Compact' },
+  { id: 'template-tech', name: 'Tech' },
+  { id: 'template-bold', name: 'Bold' },
+  { id: 'template-clean', name: 'Clean' },
+  { id: 'template-professional', name: 'Professional' },
+  { id: 'template-ats', name: 'ATS-Friendly' },
 ];
 
 let templateMode = localStorage.getItem(TEMPLATE_KEY) || templates[0].id;
-
-function escapeHtml(value) {
-  return String(value || '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
 
 function getFormData() {
   return Object.fromEntries(new FormData(form).entries());
@@ -70,11 +59,9 @@ function renderExperience(data) {
     .map(
       (item) => `
       <div class="exp-item">
-        <strong>${escapeHtml(item.role)}</strong>${item.company ? ` — ${escapeHtml(item.company)}` : ''}
-        <div class="muted">${escapeHtml(item.duration)}</div>
-        <ul>
-          ${item.highlights.map((h) => `<li>${escapeHtml(h)}</li>`).join('')}
-        </ul>
+        <strong>${item.role || ''}</strong>${item.company ? ` — ${item.company}` : ''}
+        <div class="muted">${item.duration || ''}</div>
+        <ul>${item.highlights.map((h) => `<li>${h}</li>`).join('')}</ul>
       </div>
     `,
     )
@@ -87,27 +74,27 @@ function renderResume(data) {
     .map((s) => s.trim())
     .filter(Boolean);
 
-  preview.className = `template-${templateMode}`;
+  preview.className = templateMode;
 
   preview.innerHTML = `
     <header class="resume-header">
-      <h3>${escapeHtml(data.fullName || 'Your Name')}</h3>
-      <p>${escapeHtml(data.title || 'Professional Title')}</p>
+      <h3>${data.fullName || 'Your Name'}</h3>
+      <p>${data.title || 'Professional Title'}</p>
       <p class="muted">
-        ${escapeHtml([data.email, data.phone, data.location, data.website].filter(Boolean).join(' • ') || 'Email • Phone • Location')}
+        ${[data.email, data.phone, data.location, data.website].filter(Boolean).join(' • ') || 'Email • Phone • Location'}
       </p>
     </header>
 
     <section class="resume-section">
       <h4>Summary</h4>
-      <p>${escapeHtml(data.summary || 'Write a short summary to highlight your profile.')}</p>
+      <p>${data.summary || 'Write a short summary to highlight your profile.'}</p>
     </section>
 
     <section class="resume-section">
       <h4>Skills</h4>
       ${
         skills.length
-          ? `<div class="tag-list">${skills.map((s) => `<span class="tag">${escapeHtml(s)}</span>`).join('')}</div>`
+          ? `<div class="tag-list">${skills.map((s) => `<span class="tag">${s}</span>`).join('')}</div>`
           : '<p class="muted">Add skills separated by commas.</p>'
       }
     </section>
@@ -121,7 +108,7 @@ function renderResume(data) {
       <h4>Education</h4>
       ${
         data.degree || data.school || data.eduYear
-          ? `<p><strong>${escapeHtml(data.degree)}</strong><br/>${escapeHtml(data.school)} ${data.eduYear ? `(${escapeHtml(data.eduYear)})` : ''}</p>`
+          ? `<p><strong>${data.degree || ''}</strong><br/>${data.school || ''} ${data.eduYear ? `(${data.eduYear})` : ''}</p>`
           : '<p class="muted">Add your education details.</p>'
       }
     </section>
@@ -134,9 +121,9 @@ function syncFromStorage() {
 
   try {
     const parsed = JSON.parse(saved);
-    Object.entries(parsed).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(parsed)) {
       if (form.elements[key]) form.elements[key].value = value;
-    });
+    }
   } catch {
     localStorage.removeItem(STORAGE_KEY);
   }
@@ -171,7 +158,6 @@ function uploadJson(file) {
         if (form.elements[key]) form.elements[key].value = value;
       });
       update();
-      assistantResponse.textContent = 'Resume data imported successfully.';
     } catch {
       alert('Invalid JSON file.');
     }
@@ -179,122 +165,75 @@ function uploadJson(file) {
   reader.readAsText(file);
 }
 
-function setTemplates() {
-  templateSelect.innerHTML = templates
-    .map((template) => `<option value="${template.id}">${template.name}</option>`)
-    .join('');
-  templateSelect.value = templateMode;
+function initializeTemplates() {
+  templateSelect.innerHTML = templates.map((t) => `<option value="${t.id}">${t.name}</option>`).join('');
+  templateSelect.value = templates.some((t) => t.id === templateMode) ? templateMode : templates[0].id;
+  templateMode = templateSelect.value;
+  templateCount.textContent = `${templates.length} templates available`;
 }
 
-function skillsArray(data) {
-  return (data.skills || '')
-    .split(',')
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function analyzeResume() {
-  const data = getFormData();
+function scoreResume(data) {
+  let score = 0;
   const suggestions = [];
+
+  if (data.fullName && data.title) score += 15;
+  else suggestions.push('Add both full name and professional title.');
+
+  if (data.email && data.phone) score += 15;
+  else suggestions.push('Include both email and phone for recruiter contact readiness.');
+
   const summaryWords = (data.summary || '').trim().split(/\s+/).filter(Boolean).length;
-  const skills = skillsArray(data);
-  const allHighlights = [1, 2, 3].flatMap((n) => normalizeHighlights(data[`expHighlights${n}`]));
+  if (summaryWords >= 30 && summaryWords <= 90) score += 20;
+  else suggestions.push('Keep summary between 30 and 90 words with measurable impact.');
 
-  if (!data.fullName) suggestions.push('Add your full name to keep the resume recruiter-ready.');
-  if (!data.title) suggestions.push('Add a professional title aligned to your target role.');
-  if (summaryWords < 40) suggestions.push('Expand summary to ~40–80 words with achievements and domain expertise.');
-  if (skills.length < 6) suggestions.push('Increase skills to 8-12 targeted keywords for ATS visibility.');
-  if (!allHighlights.some((h) => /\d+%|\d+x|\d+\+/.test(h))) {
-    suggestions.push('Add quantified impact in experience bullets (e.g., reduced cost by 20%).');
-  }
+  const skillsCount = (data.skills || '').split(',').map((s) => s.trim()).filter(Boolean).length;
+  if (skillsCount >= 6) score += 15;
+  else suggestions.push('Add at least 6 targeted, role-specific skills.');
 
-  const title = (data.title || '').toLowerCase();
-  if (title.includes('frontend') && !skills.some((k) => ['react', 'typescript', 'javascript'].includes(k))) {
-    suggestions.push('For frontend roles, include role-aligned skills like React, TypeScript, JavaScript.');
-  }
-  if (title.includes('backend') && !skills.some((k) => ['node.js', 'sql', 'api'].includes(k))) {
-    suggestions.push('For backend roles, include Node.js, SQL, REST/GraphQL APIs, and system design keywords.');
-  }
+  const highlightsCount = [1, 2, 3].reduce((acc, n) => acc + normalizeHighlights(data[`expHighlights${n}`]).length, 0);
+  if (highlightsCount >= 4) score += 20;
+  else suggestions.push('Add 4+ achievement-based experience bullets with numbers/results.');
 
-  if (!suggestions.length) suggestions.push('Great baseline! Next: tailor resume keywords to each job description.');
+  if (data.degree && data.school) score += 15;
+  else suggestions.push('Complete education section with degree and school name.');
 
-  suggestionList.innerHTML = suggestions.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
-  assistantResponse.textContent = `AI Assistant analyzed your resume and found ${suggestions.length} improvement point(s).`;
+  const level = score >= 85 ? 'Excellent' : score >= 70 ? 'Strong' : score >= 50 ? 'Good but improvable' : 'Needs major improvement';
+  return { score, level, suggestions };
 }
 
-function improveSummary() {
-  const data = getFormData();
-  if (!data.summary?.trim()) {
-    form.elements.summary.value = `Results-driven ${data.title || 'professional'} with experience delivering measurable business impact through cross-functional collaboration, process optimization, and high-quality execution. Strong focus on ownership, communication, and outcomes.`;
-  } else {
-    form.elements.summary.value = `${data.summary.trim()} Proven track record of delivering quantifiable outcomes, optimizing workflows, and building stakeholder trust through consistent, high-quality execution.`;
+function rewriteSummary(summary, title) {
+  const clean = (summary || '').trim();
+  if (!clean) {
+    return `Results-driven ${title || 'professional'} with proven experience delivering measurable business impact, optimizing processes, and collaborating cross-functionally to execute high-quality outcomes.`;
   }
-  update();
-  assistantResponse.textContent = 'Summary upgraded to a more proficient, impact-focused version.';
+
+  const sentence = clean.endsWith('.') ? clean.slice(0, -1) : clean;
+  return `Results-driven ${title || 'professional'} with strong ownership and delivery focus. ${sentence}. Demonstrated ability to improve performance, efficiency, and customer outcomes through strategic execution and collaboration.`;
 }
 
-function improveHighlights() {
-  [1, 2, 3].forEach((n) => {
-    const field = form.elements[`expHighlights${n}`];
-    const lines = normalizeHighlights(field.value);
-    if (!lines.length) return;
+function rewriteHighlights(text) {
+  const bullets = normalizeHighlights(text);
+  if (!bullets.length) {
+    return 'Led high-impact initiatives that improved delivery speed and quality by measurable margins; Collaborated across teams to ship customer-centric features with strong reliability';
+  }
 
-    const upgraded = lines.map((line) => {
-      if (/\d+%|\d+x|\d+\+/.test(line)) return line;
-      return `${line} (improved KPI by 15%)`;
-    });
-
-    field.value = upgraded.join('; ');
-  });
-
-  update();
-  assistantResponse.textContent = 'Experience bullets enhanced with measurable impact language.';
+  return bullets
+    .map((b) => {
+      if (/\d/.test(b)) return b;
+      return `Drove ${b.charAt(0).toLowerCase() + b.slice(1)} with measurable business impact and improved team efficiency`; 
+    })
+    .join('; ');
 }
 
-function generateProProfile() {
-  const data = getFormData();
-  if (!data.title) form.elements.title.value = 'Software Engineer';
-  if (!data.skills) {
-    form.elements.skills.value = 'Problem Solving, Communication, JavaScript, TypeScript, React, Node.js, APIs, Testing, Git, Agile';
-  }
-  if (!data.summary) {
-    form.elements.summary.value = `Proactive ${form.elements.title.value} with a strong record of building scalable products, improving operational efficiency, and delivering measurable user and business value.`;
-  }
-  if (!data.expHighlights1) {
-    form.elements.expHighlights1.value = 'Led feature delivery across teams; Reduced defects by 30%; Improved release velocity by 25%';
-  }
-
-  update();
-  analyzeResume();
-  assistantResponse.textContent = 'Proficient profile baseline generated. Review and tailor to your target job.';
-}
-
-function askAssistant() {
-  const question = (assistantPromptInput.value || '').trim().toLowerCase();
-  if (!question) {
-    assistantResponse.textContent = 'Please ask a question so the assistant can help optimize your resume.';
-    return;
-  }
-
-  if (question.includes('ats')) {
-    assistantResponse.textContent = 'ATS tip: mirror key terms from the job description in your title, summary, skills, and experience bullets.';
-  } else if (question.includes('summary')) {
-    assistantResponse.textContent = 'Strong summaries include role identity, years of experience, domain expertise, and measurable wins.';
-  } else if (question.includes('experience') || question.includes('bullet')) {
-    assistantResponse.textContent = 'Use action verb + project context + measurable impact in every bullet for recruiter clarity.';
-  } else if (question.includes('skill')) {
-    assistantResponse.textContent = 'Prioritize role-relevant technical + domain + collaboration skills. Keep top skills near the top.';
-  } else {
-    assistantResponse.textContent = 'Focus on clarity, relevance, and measurable outcomes. Tailor each resume to the exact role.';
-  }
+function renderAiFeedback(content) {
+  aiFeedback.innerHTML = content;
 }
 
 form.addEventListener('input', update);
 clearBtn.addEventListener('click', () => {
   form.reset();
   localStorage.removeItem(STORAGE_KEY);
-  suggestionList.innerHTML = '';
-  assistantResponse.textContent = 'All data cleared.';
+  renderAiFeedback('');
   update();
 });
 
@@ -311,12 +250,31 @@ templateSelect.addEventListener('change', () => {
   update();
 });
 
-analyzeResumeBtn.addEventListener('click', analyzeResume);
-improveSummaryBtn.addEventListener('click', improveSummary);
-improveHighlightsBtn.addEventListener('click', improveHighlights);
-proGenerateBtn.addEventListener('click', generateProProfile);
-askAssistantBtn.addEventListener('click', askAssistant);
+analyzeResumeBtn.addEventListener('click', () => {
+  const data = getFormData();
+  const report = scoreResume(data);
+  renderAiFeedback(`
+    <strong>Resume Quality Score: ${report.score}/100 (${report.level})</strong>
+    <ul>${report.suggestions.map((s) => `<li>${s}</li>`).join('') || '<li>Great job. Your resume is already very strong.</li>'}</ul>
+  `);
+});
 
-setTemplates();
+improveSummaryBtn.addEventListener('click', () => {
+  const current = form.elements.summary.value;
+  form.elements.summary.value = rewriteSummary(current, form.elements.title.value);
+  update();
+  renderAiFeedback('<strong>Summary improved:</strong> Professional language and impact-oriented framing applied.');
+});
+
+improveHighlightsBtn.addEventListener('click', () => {
+  [1, 2, 3].forEach((n) => {
+    const key = `expHighlights${n}`;
+    form.elements[key].value = rewriteHighlights(form.elements[key].value);
+  });
+  update();
+  renderAiFeedback('<strong>Highlights improved:</strong> Achievement-focused wording generated for all experience blocks.');
+});
+
 syncFromStorage();
+initializeTemplates();
 update();
