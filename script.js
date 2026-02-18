@@ -12,269 +12,161 @@ const improveSummaryBtn = document.getElementById('improveSummary');
 const improveHighlightsBtn = document.getElementById('improveHighlights');
 const aiFeedback = document.getElementById('aiFeedback');
 
-const STORAGE_KEY = 'resumeforge-data-v2';
-const TEMPLATE_KEY = 'resumeforge-template-v2';
+const STORAGE_KEY = 'resumeforge-data-v3';
+const TEMPLATE_KEY = 'resumeforge-template-v3';
 
 const templates = [
+  { id: 'template-mary', name: 'Elegant Sidebar (Mary)' },
+  { id: 'template-dark-sidebar', name: 'Dark Sidebar (Mike)' },
+  { id: 'template-blue-graphic', name: 'Blue Graphic' },
+  { id: 'template-recruiter', name: 'Recruiter Minimal' },
+  { id: 'template-simple-classic', name: 'Simple Classic' },
+  { id: 'template-academic', name: 'Academic Pro' },
   { id: 'template-modern', name: 'Modern' },
   { id: 'template-minimal', name: 'Minimal' },
-  { id: 'template-classic', name: 'Classic' },
   { id: 'template-corporate', name: 'Corporate' },
-  { id: 'template-elegant', name: 'Elegant' },
-  { id: 'template-creative', name: 'Creative' },
-  { id: 'template-compact', name: 'Compact' },
   { id: 'template-tech', name: 'Tech' },
-  { id: 'template-bold', name: 'Bold' },
-  { id: 'template-clean', name: 'Clean' },
-  { id: 'template-professional', name: 'Professional' },
-  { id: 'template-ats', name: 'ATS-Friendly' },
+  { id: 'template-ats', name: 'ATS Friendly' },
+  { id: 'template-elegant', name: 'Elegant Clean' },
 ];
 
 let templateMode = localStorage.getItem(TEMPLATE_KEY) || templates[0].id;
 
-function getFormData() {
+const list = (value) => (value || '').split(',').map((x) => x.trim()).filter(Boolean);
+const highlights = (v) => (v || '').split(/\n|;|•/).map((x) => x.trim()).filter(Boolean);
+
+function getData() {
   return Object.fromEntries(new FormData(form).entries());
 }
 
-function normalizeHighlights(text) {
-  return (text || '')
-    .split(/\n|;|•/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-}
-
-function renderExperience(data) {
-  const items = [1, 2, 3]
+function experiences(d) {
+  return [1, 2, 3]
     .map((n) => ({
-      role: data[`expRole${n}`],
-      company: data[`expCompany${n}`],
-      duration: data[`expDuration${n}`],
-      highlights: normalizeHighlights(data[`expHighlights${n}`]),
+      role: d[`expRole${n}`], company: d[`expCompany${n}`], location: d[`expLocation${n}`], duration: d[`expDuration${n}`], bullets: highlights(d[`expHighlights${n}`]),
     }))
-    .filter((i) => i.role || i.company || i.duration || i.highlights.length);
-
-  if (!items.length) return '<p class="muted">Add your work experience.</p>';
-
-  return items
-    .map(
-      (item) => `
-      <div class="exp-item">
-        <strong>${item.role || ''}</strong>${item.company ? ` — ${item.company}` : ''}
-        <div class="muted">${item.duration || ''}</div>
-        <ul>${item.highlights.map((h) => `<li>${h}</li>`).join('')}</ul>
-      </div>
-    `,
-    )
-    .join('');
+    .filter((x) => x.role || x.company || x.duration || x.bullets.length);
 }
 
-function renderResume(data) {
-  const skills = (data.skills || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  preview.className = templateMode;
-
-  preview.innerHTML = `
-    <header class="resume-header">
-      <h3>${data.fullName || 'Your Name'}</h3>
-      <p>${data.title || 'Professional Title'}</p>
-      <p class="muted">
-        ${[data.email, data.phone, data.location, data.website].filter(Boolean).join(' • ') || 'Email • Phone • Location'}
-      </p>
-    </header>
-
-    <section class="resume-section">
-      <h4>Summary</h4>
-      <p>${data.summary || 'Write a short summary to highlight your profile.'}</p>
-    </section>
-
-    <section class="resume-section">
-      <h4>Skills</h4>
-      ${
-        skills.length
-          ? `<div class="tag-list">${skills.map((s) => `<span class="tag">${s}</span>`).join('')}</div>`
-          : '<p class="muted">Add skills separated by commas.</p>'
-      }
-    </section>
-
-    <section class="resume-section">
-      <h4>Experience</h4>
-      ${renderExperience(data)}
-    </section>
-
-    <section class="resume-section">
-      <h4>Education</h4>
-      ${
-        data.degree || data.school || data.eduYear
-          ? `<p><strong>${data.degree || ''}</strong><br/>${data.school || ''} ${data.eduYear ? `(${data.eduYear})` : ''}</p>`
-          : '<p class="muted">Add your education details.</p>'
-      }
-    </section>
-  `;
+function expHtml(d) {
+  const items = experiences(d);
+  if (!items.length) return '<p class="r-muted">Add experience entries.</p>';
+  return items.map((x) => `
+    <div class="r-item">
+      <strong>${x.role || ''}</strong> ${x.company ? `| ${x.company}` : ''}
+      <div class="r-muted">${[x.location, x.duration].filter(Boolean).join(' | ')}</div>
+      <ul class="r-bullets">${x.bullets.map((b) => `<li>${b}</li>`).join('')}</ul>
+    </div>`).join('');
 }
 
-function syncFromStorage() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) return;
+function section(title, body) {
+  return `<section class="r-section"><h4>${title}</h4>${body}</section>`;
+}
 
-  try {
-    const parsed = JSON.parse(saved);
-    for (const [key, value] of Object.entries(parsed)) {
-      if (form.elements[key]) form.elements[key].value = value;
-    }
-  } catch {
-    localStorage.removeItem(STORAGE_KEY);
+function contactBlock(d) {
+  return [d.phone, d.email, d.linkedin, d.website, d.location].filter(Boolean).map((x) => `<div>${x}</div>`).join('');
+}
+
+function defaultTemplate(d) {
+  return `<div class="r-page ${templateMode}">
+    <h2 class="r-name">${d.fullName || 'Your Name'}</h2>
+    <div class="r-title">${d.title || 'Professional Title'}</div>
+    <div class="r-contact r-muted">${contactBlock(d) || 'Phone • Email • Location'}</div>
+    ${section('Summary', `<p>${d.summary || 'Professional profile summary goes here.'}</p>`) }
+    ${section('Experience', expHtml(d))}
+    ${section('Education', `<p>${d.education1 || ''}</p><p>${d.education2 || ''}</p>`) }
+    ${section('Skills', `<div class="r-tags">${list(d.skills).map((s) => `<span class="r-tag">${s}</span>`).join('')}</div>`) }
+    ${section('Technical Skills', `<div class="r-tags">${list(d.technicalSkills).map((s) => `<span class="r-tag">${s}</span>`).join('')}</div>`) }
+  </div>`;
+}
+
+function renderTemplate(d) {
+  const photo = d.photoUrl ? `<img class="r-avatar" src="${d.photoUrl}" alt="profile" onerror="this.style.display='none'" />` : '<div class="r-avatar"></div>';
+  if (templateMode === 'template-mary') {
+    return `<div class="r-page template-mary"><div class="r-top"><div><h2 class="r-name">${d.fullName || 'MARY ROBERTSON'}</h2><div class="r-title">${d.title || 'Professional Position'}</div></div>${photo}</div><div class="r-divider"></div><div class="r-main"><aside class="r-left">${section('Contact', contactBlock(d))}${section('Education', `<p>${d.education1 || ''}</p><p>${d.education2 || ''}</p>`)}${section('Skills', `<p>${list(d.skills).join('<br/>')}</p>`)}</aside><div>${section('Profile', `<p>${d.summary || ''}</p>`)}${section('Work Experience', expHtml(d))}${section('Certifications', `<p>${d.certifications || ''}</p>`)}</div></div></div>`;
   }
-}
-
-function persist() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(getFormData()));
+  if (templateMode === 'template-dark-sidebar') {
+    return `<div class="r-page template-dark-sidebar"><div class="r-main"><aside class="r-left">${photo}${section('Contact', contactBlock(d))}${section('Education', `<p>${d.education1 || ''}</p><p>${d.education2 || ''}</p>`)}${section('Skills', `<p>${list(d.skills).join('<br/>')}</p>`)}${section('Tech', `<p>${list(d.technicalSkills).join('<br/>')}</p>`)}</aside><div class="r-right"><h2 class="r-name">${d.fullName || ''}</h2><div class="r-title">${d.title || ''}</div>${section('Professional Profile', `<p>${d.summary || ''}</p>`)}${section('Work Experience', expHtml(d))}${section('References', `<p>${d.reference1 || ''}</p><p>${d.reference2 || ''}</p>`)}</div></div></div>`;
+  }
+  if (templateMode === 'template-blue-graphic') {
+    return `<div class="r-page template-blue-graphic"><div class="r-main"><aside class="r-left">${photo}${section('Contact', contactBlock(d))}${section('Skills', `<p>${list(d.skills).join('<br/>')}</p>`)}${section('Hobbies', `<p>${list(d.hobbies).join(', ')}</p>`)}</aside><div class="r-right"><h2 class="r-name">${d.fullName || ''}</h2><div class="r-title">${d.title || ''}</div><div class="r-pill">ABOUT ME</div><p>${d.summary || ''}</p>${section('Education', `<p>${d.education1 || ''}</p><p>${d.education2 || ''}</p>`)}${section('Experience', expHtml(d))}</div></div></div>`;
+  }
+  if (templateMode === 'template-recruiter') {
+    return `<div class="r-page template-recruiter"><h2 class="r-name">${d.fullName || ''}</h2><div class="r-contact r-muted">${[d.location, d.phone, d.email].filter(Boolean).join(' • ')}</div>${section('Professional Profile', `<p>${d.summary || ''}</p>`)}${section('Work Experience', expHtml(d))}${section('Education', `<p>${d.education1 || ''}</p><p>${d.education2 || ''}</p>`)}${section('Skills', `<p><strong>Professional:</strong> ${list(d.skills).join(', ')}</p><p><strong>Technical:</strong> ${list(d.technicalSkills).join(', ')}</p>`)}</div>`;
+  }
+  if (templateMode === 'template-simple-classic') {
+    return `<div class="r-page template-simple-classic"><h1 class="r-name">${d.fullName || 'SIMPLE RESUME FORMAT'}</h1><div class="r-title">${d.title || ''}</div><div class="r-contact r-muted">${[d.location, d.phone, d.email].filter(Boolean).join(' | ')}</div>${section('Summary', `<p>${d.summary || ''}</p>`)}${section('Professional Experience', expHtml(d))}${section('Education', `<p>${d.education1 || ''}</p><p>${d.education2 || ''}</p>`)}${section('Additional Skills', `<p>${list(d.skills).join(', ')}</p><p>${list(d.languages).join(', ')}</p>`)}</div>`;
+  }
+  if (templateMode === 'template-academic') {
+    return `<div class="r-page template-academic"><h2 class="r-name">${d.fullName || ''}</h2><div class="r-contact r-muted">${[d.phone,d.email,d.location].filter(Boolean).join(' | ')}</div>${section('Summary', `<p>${d.summary || ''}</p>`)}${section('Education', `<p>${d.education1 || ''}</p><p>${d.education2 || ''}</p>`)}${section('Experience', expHtml(d))}<div class="r-two-col">${section('Professional Skills', `<ul class="r-bullets">${list(d.skills).map((x) => `<li>${x}</li>`).join('')}</ul>`)}${section('Technical Skills', `<ul class="r-bullets">${list(d.technicalSkills).map((x) => `<li>${x}</li>`).join('')}</ul>`)}</div></div>`;
+  }
+  return defaultTemplate(d);
 }
 
 function update() {
-  const data = getFormData();
-  persist();
-  renderResume(data);
+  const d = getData();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+  preview.innerHTML = renderTemplate(d);
 }
 
-function downloadJson() {
-  const blob = new Blob([JSON.stringify(getFormData(), null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = 'resume-data.json';
-  anchor.click();
-  URL.revokeObjectURL(url);
+function sync() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return;
+  try {
+    const data = JSON.parse(saved);
+    Object.entries(data).forEach(([k, v]) => { if (form.elements[k]) form.elements[k].value = v; });
+  } catch { localStorage.removeItem(STORAGE_KEY); }
 }
 
-function uploadJson(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const parsed = JSON.parse(reader.result);
-      Object.entries(parsed).forEach(([key, value]) => {
-        if (form.elements[key]) form.elements[key].value = value;
-      });
-      update();
-    } catch {
-      alert('Invalid JSON file.');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function initializeTemplates() {
+function initTemplates() {
   templateSelect.innerHTML = templates.map((t) => `<option value="${t.id}">${t.name}</option>`).join('');
-  templateSelect.value = templates.some((t) => t.id === templateMode) ? templateMode : templates[0].id;
-  templateMode = templateSelect.value;
-  templateCount.textContent = `${templates.length} templates available`;
+  if (!templates.some((t) => t.id === templateMode)) templateMode = templates[0].id;
+  templateSelect.value = templateMode;
+  templateCount.textContent = `${templates.length} templates`;
 }
 
-function scoreResume(data) {
-  let score = 0;
-  const suggestions = [];
-
-  if (data.fullName && data.title) score += 15;
-  else suggestions.push('Add both full name and professional title.');
-
-  if (data.email && data.phone) score += 15;
-  else suggestions.push('Include both email and phone for recruiter contact readiness.');
-
-  const summaryWords = (data.summary || '').trim().split(/\s+/).filter(Boolean).length;
-  if (summaryWords >= 30 && summaryWords <= 90) score += 20;
-  else suggestions.push('Keep summary between 30 and 90 words with measurable impact.');
-
-  const skillsCount = (data.skills || '').split(',').map((s) => s.trim()).filter(Boolean).length;
-  if (skillsCount >= 6) score += 15;
-  else suggestions.push('Add at least 6 targeted, role-specific skills.');
-
-  const highlightsCount = [1, 2, 3].reduce((acc, n) => acc + normalizeHighlights(data[`expHighlights${n}`]).length, 0);
-  if (highlightsCount >= 4) score += 20;
-  else suggestions.push('Add 4+ achievement-based experience bullets with numbers/results.');
-
-  if (data.degree && data.school) score += 15;
-  else suggestions.push('Complete education section with degree and school name.');
-
-  const level = score >= 85 ? 'Excellent' : score >= 70 ? 'Strong' : score >= 50 ? 'Good but improvable' : 'Needs major improvement';
-  return { score, level, suggestions };
+function score(d) {
+  let s = 0; const tips = [];
+  if (d.fullName && d.title) s += 15; else tips.push('Add full name and clear professional title.');
+  if (d.email && d.phone && d.location) s += 20; else tips.push('Complete contact details (email, phone, location).');
+  if ((d.summary || '').split(/\s+/).filter(Boolean).length >= 25) s += 20; else tips.push('Write a stronger 25+ word summary.');
+  if (list(d.skills).length >= 6) s += 15; else tips.push('Add at least 6 professional skills.');
+  if (list(d.technicalSkills).length >= 5) s += 10; else tips.push('Add at least 5 technical skills.');
+  if (experiences(d).length >= 2) s += 20; else tips.push('Add at least 2 work experience entries with bullet achievements.');
+  return { s, tips };
 }
 
-function rewriteSummary(summary, title) {
-  const clean = (summary || '').trim();
-  if (!clean) {
-    return `Results-driven ${title || 'professional'} with proven experience delivering measurable business impact, optimizing processes, and collaborating cross-functionally to execute high-quality outcomes.`;
-  }
-
-  const sentence = clean.endsWith('.') ? clean.slice(0, -1) : clean;
-  return `Results-driven ${title || 'professional'} with strong ownership and delivery focus. ${sentence}. Demonstrated ability to improve performance, efficiency, and customer outcomes through strategic execution and collaboration.`;
+function improveSummary(text, title) {
+  if (!text.trim()) return `Results-driven ${title || 'professional'} delivering measurable outcomes, cross-functional collaboration, and customer-focused solutions with strong ownership and execution.`;
+  return `Results-driven ${title || 'professional'} with proven ability to deliver measurable outcomes, optimize processes, and collaborate across teams. ${text.trim()}`;
 }
 
-function rewriteHighlights(text) {
-  const bullets = normalizeHighlights(text);
-  if (!bullets.length) {
-    return 'Led high-impact initiatives that improved delivery speed and quality by measurable margins; Collaborated across teams to ship customer-centric features with strong reliability';
-  }
-
-  return bullets
-    .map((b) => {
-      if (/\d/.test(b)) return b;
-      return `Drove ${b.charAt(0).toLowerCase() + b.slice(1)} with measurable business impact and improved team efficiency`; 
-    })
-    .join('; ');
-}
-
-function renderAiFeedback(content) {
-  aiFeedback.innerHTML = content;
+function improveExp(text) {
+  const b = highlights(text);
+  if (!b.length) return 'Led high-impact initiatives that improved KPIs by measurable margins; Collaborated cross-functionally to deliver quality outcomes on schedule';
+  return b.map((x) => (/\d/.test(x) ? x : `Improved ${x.toLowerCase()} with measurable impact and stronger delivery efficiency`)).join('; ');
 }
 
 form.addEventListener('input', update);
-clearBtn.addEventListener('click', () => {
-  form.reset();
-  localStorage.removeItem(STORAGE_KEY);
-  renderAiFeedback('');
-  update();
-});
-
+clearBtn.addEventListener('click', () => { form.reset(); localStorage.removeItem(STORAGE_KEY); aiFeedback.innerHTML = ''; update(); });
 printBtn.addEventListener('click', () => window.print());
-downloadJsonBtn.addEventListener('click', downloadJson);
+downloadJsonBtn.addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(getData(), null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'resume-data.json'; a.click(); URL.revokeObjectURL(url);
+});
 uploadJsonInput.addEventListener('change', (e) => {
-  const [file] = e.target.files;
-  if (file) uploadJson(file);
+  const [file] = e.target.files; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { try { const p = JSON.parse(reader.result); Object.entries(p).forEach(([k,v]) => { if (form.elements[k]) form.elements[k].value = v; }); update(); } catch { alert('Invalid JSON'); } };
+  reader.readAsText(file);
 });
-
-templateSelect.addEventListener('change', () => {
-  templateMode = templateSelect.value;
-  localStorage.setItem(TEMPLATE_KEY, templateMode);
-  update();
-});
-
+templateSelect.addEventListener('change', () => { templateMode = templateSelect.value; localStorage.setItem(TEMPLATE_KEY, templateMode); update(); });
 analyzeResumeBtn.addEventListener('click', () => {
-  const data = getFormData();
-  const report = scoreResume(data);
-  renderAiFeedback(`
-    <strong>Resume Quality Score: ${report.score}/100 (${report.level})</strong>
-    <ul>${report.suggestions.map((s) => `<li>${s}</li>`).join('') || '<li>Great job. Your resume is already very strong.</li>'}</ul>
-  `);
+  const { s, tips } = score(getData());
+  aiFeedback.innerHTML = `<strong>Score: ${s}/100</strong><ul>${tips.length ? tips.map((t) => `<li>${t}</li>`).join('') : '<li>Excellent resume quality.</li>'}</ul>`;
 });
+improveSummaryBtn.addEventListener('click', () => { form.elements.summary.value = improveSummary(form.elements.summary.value, form.elements.title.value); update(); aiFeedback.innerHTML = '<strong>Summary improved.</strong>'; });
+improveHighlightsBtn.addEventListener('click', () => { [1,2,3].forEach((n) => { form.elements[`expHighlights${n}`].value = improveExp(form.elements[`expHighlights${n}`].value); }); update(); aiFeedback.innerHTML = '<strong>Highlights improved.</strong>'; });
 
-improveSummaryBtn.addEventListener('click', () => {
-  const current = form.elements.summary.value;
-  form.elements.summary.value = rewriteSummary(current, form.elements.title.value);
-  update();
-  renderAiFeedback('<strong>Summary improved:</strong> Professional language and impact-oriented framing applied.');
-});
-
-improveHighlightsBtn.addEventListener('click', () => {
-  [1, 2, 3].forEach((n) => {
-    const key = `expHighlights${n}`;
-    form.elements[key].value = rewriteHighlights(form.elements[key].value);
-  });
-  update();
-  renderAiFeedback('<strong>Highlights improved:</strong> Achievement-focused wording generated for all experience blocks.');
-});
-
-syncFromStorage();
-initializeTemplates();
+sync();
+initTemplates();
 update();
