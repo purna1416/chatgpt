@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ResumeForge — Advanced Resume Maker</title>
+    <title>ResumeForge — Designer Resume Builder</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div>
         <h1>ResumeForge</h1>
-        <p>Advanced resume maker with templates + AI assistant</p>
+        <p>Reference-inspired templates + live preview + AI helper</p>
       </div>
       <div class="topbar-actions">
         <button id="clearAll" class="danger">Clear</button>
@@ -29,19 +29,30 @@
 
         <form id="resumeForm">
           <fieldset>
-            <legend>Personal Details</legend>
-            <label>Full Name <input name="fullName" required placeholder="Alex Morgan" /></label>
-            <label>Professional Title <input name="title" placeholder="Frontend Developer" /></label>
-            <label>Email <input type="email" name="email" placeholder="alex@email.com" /></label>
-            <label>Phone <input name="phone" placeholder="+1 111 222 3333" /></label>
-            <label>Location <input name="location" placeholder="San Francisco, CA" /></label>
-            <label>Website/Portfolio <input name="website" placeholder="https://portfolio.dev" /></label>
-            <label>Summary <textarea name="summary" rows="4" placeholder="A concise pitch about your strengths..."></textarea></label>
+            <legend>Profile</legend>
+            <label>Full Name <input name="fullName" required placeholder="Mary Robertson" /></label>
+            <label>Professional Title <input name="title" placeholder="Graphic Designer" /></label>
+            <label>Photo URL <input name="photoUrl" placeholder="https://..." /></label>
+            <label>Summary <textarea name="summary" rows="4" placeholder="Impact-driven profile summary..."></textarea></label>
           </fieldset>
 
           <fieldset>
-            <legend>Skills (comma separated)</legend>
-            <label>Skills <input name="skills" placeholder="JavaScript, React, TypeScript, CSS" /></label>
+            <legend>Contact</legend>
+            <div class="group-grid">
+              <label>Email <input type="email" name="email" placeholder="you@email.com" /></label>
+              <label>Phone <input name="phone" placeholder="+1 000 000 0000" /></label>
+              <label>Location <input name="location" placeholder="City, Country" /></label>
+              <label>Website <input name="website" placeholder="https://portfolio.com" /></label>
+              <label>LinkedIn <input name="linkedin" placeholder="linkedin.com/in/username" /></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Skills & Strengths</legend>
+            <label>Professional Skills (comma separated) <input name="skills" placeholder="Communication, Leadership, Strategy" /></label>
+            <label>Technical Skills (comma separated) <input name="technicalSkills" placeholder="Figma, Photoshop, React, SQL" /></label>
+            <label>Languages (comma separated) <input name="languages" placeholder="English, Spanish" /></label>
+            <label>Hobbies (comma separated) <input name="hobbies" placeholder="Travel, Music, Football" /></label>
           </fieldset>
 
           <fieldset>
@@ -49,43 +60,44 @@
             <div class="group-grid">
               <label>Role 1 <input name="expRole1" /></label>
               <label>Company 1 <input name="expCompany1" /></label>
-              <label>Duration 1 <input name="expDuration1" placeholder="2022 - Present" /></label>
-              <label class="full">Highlights 1 <textarea name="expHighlights1" rows="3" placeholder="Led migration to React; Improved load time by 40%"></textarea></label>
+              <label>Location 1 <input name="expLocation1" /></label>
+              <label>Duration 1 <input name="expDuration1" placeholder="2019 - 2021" /></label>
+              <label class="full">Highlights 1 <textarea name="expHighlights1" rows="3" placeholder="Led redesign; Increased conversion by 22%"></textarea></label>
             </div>
             <div class="group-grid">
               <label>Role 2 <input name="expRole2" /></label>
               <label>Company 2 <input name="expCompany2" /></label>
+              <label>Location 2 <input name="expLocation2" /></label>
               <label>Duration 2 <input name="expDuration2" /></label>
               <label class="full">Highlights 2 <textarea name="expHighlights2" rows="3"></textarea></label>
             </div>
             <div class="group-grid">
               <label>Role 3 <input name="expRole3" /></label>
               <label>Company 3 <input name="expCompany3" /></label>
+              <label>Location 3 <input name="expLocation3" /></label>
               <label>Duration 3 <input name="expDuration3" /></label>
               <label class="full">Highlights 3 <textarea name="expHighlights3" rows="3"></textarea></label>
             </div>
           </fieldset>
 
           <fieldset>
-            <legend>Education</legend>
-            <label>Degree <input name="degree" placeholder="B.Sc. Computer Science" /></label>
-            <label>School <input name="school" placeholder="Tech University" /></label>
-            <label>Year <input name="eduYear" placeholder="2021" /></label>
+            <legend>Education & Extras</legend>
+            <label>Education 1 <input name="education1" placeholder="B.Sc. Computer Science — University Name (2020)" /></label>
+            <label>Education 2 <input name="education2" placeholder="M.Sc. Design — University Name (2022)" /></label>
+            <label>Certifications <input name="certifications" placeholder="Google UX, AWS CCP, PMP" /></label>
+            <label>Reference 1 <input name="reference1" placeholder="Amay Newston | Company | +00 000" /></label>
+            <label>Reference 2 <input name="reference2" placeholder="Olivia May | Company | +00 000" /></label>
           </fieldset>
 
           <div class="action-row">
             <button type="button" id="downloadJson" class="secondary">Download JSON</button>
-            <label class="upload-button secondary">
-              Import JSON
-              <input type="file" id="uploadJson" accept="application/json" />
-            </label>
+            <label class="upload-button secondary">Import JSON<input type="file" id="uploadJson" accept="application/json" /></label>
             <button type="button" id="printResume">Export PDF / Print</button>
           </div>
         </form>
 
         <section class="card ai-panel">
           <h3>AI Resume Assistant</h3>
-          <p class="muted">Generates professional suggestions and can rewrite summary/highlights for stronger impact.</p>
           <div class="ai-actions">
             <button type="button" id="analyzeResume">Analyze Resume</button>
             <button type="button" id="improveSummary" class="secondary">Improve Summary</button>
@@ -95,15 +107,11 @@
         </section>
       </section>
 
-      <section class="preview card" id="previewContainer">
+      <section class="preview card">
         <h2>Live Preview</h2>
-        <article id="resumePreview" class="template-modern"></article>
+        <article id="resumePreview"></article>
       </section>
     </main>
-
-    <footer>
-      <p>Autosaves locally every time you type.</p>
-    </footer>
 
     <script src="script.js"></script>
   </body>
