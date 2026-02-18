@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ResumeForge — Resume Maker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>ResumeForge</h1>
+        <p>Build a professional resume in minutes</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="templateToggle" class="secondary">Switch Template</button>
+        <button id="clearAll" class="danger">Clear</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="editor card">
+        <h2>Resume Builder</h2>
+        <form id="resumeForm">
+          <fieldset>
+            <legend>Personal Details</legend>
+            <label>Full Name <input name="fullName" required placeholder="Alex Morgan" /></label>
+            <label>Professional Title <input name="title" placeholder="Frontend Developer" /></label>
+            <label>Email <input type="email" name="email" placeholder="alex@email.com" /></label>
+            <label>Phone <input name="phone" placeholder="+1 111 222 3333" /></label>
+            <label>Location <input name="location" placeholder="San Francisco, CA" /></label>
+            <label>Website/Portfolio <input name="website" placeholder="https://portfolio.dev" /></label>
+            <label>Summary <textarea name="summary" rows="4" placeholder="A concise pitch about your strengths..."></textarea></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Skills (comma separated)</legend>
+            <label>Skills <input name="skills" placeholder="JavaScript, React, TypeScript, CSS" /></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Experience (up to 3)</legend>
+            <div class="group-grid">
+              <label>Role 1 <input name="expRole1" /></label>
+              <label>Company 1 <input name="expCompany1" /></label>
+              <label>Duration 1 <input name="expDuration1" placeholder="2022 - Present" /></label>
+              <label class="full">Highlights 1 <textarea name="expHighlights1" rows="3" placeholder="Led migration to React; Improved load time by 40%"></textarea></label>
+            </div>
+            <div class="group-grid">
+              <label>Role 2 <input name="expRole2" /></label>
+              <label>Company 2 <input name="expCompany2" /></label>
+              <label>Duration 2 <input name="expDuration2" /></label>
+              <label class="full">Highlights 2 <textarea name="expHighlights2" rows="3"></textarea></label>
+            </div>
+            <div class="group-grid">
+              <label>Role 3 <input name="expRole3" /></label>
+              <label>Company 3 <input name="expCompany3" /></label>
+              <label>Duration 3 <input name="expDuration3" /></label>
+              <label class="full">Highlights 3 <textarea name="expHighlights3" rows="3"></textarea></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Education</legend>
+            <label>Degree <input name="degree" placeholder="B.Sc. Computer Science" /></label>
+            <label>School <input name="school" placeholder="Tech University" /></label>
+            <label>Year <input name="eduYear" placeholder="2021" /></label>
+          </fieldset>
+
+          <div class="action-row">
+            <button type="button" id="downloadJson" class="secondary">Download JSON</button>
+            <label class="upload-button secondary">
+              Import JSON
+              <input type="file" id="uploadJson" accept="application/json" />
+            </label>
+            <button type="button" id="printResume">Export PDF / Print</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="preview card" id="previewContainer">
+        <h2>Live Preview</h2>
+        <article id="resumePreview" class="template-modern"></article>
+      </section>
+    </main>
+
+    <footer>
+      <p>Autosaves locally every time you type.</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
