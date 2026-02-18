@@ -3,20 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ResumeForge Pro — Advanced Resume Maker</title>
+    <title>ResumeForge — Advanced Resume Maker</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div>
-        <h1>ResumeForge Pro</h1>
-        <p>Create a proficient, ATS-friendly resume with AI guidance</p>
+        <h1>ResumeForge</h1>
+        <p>Advanced resume maker with templates + AI assistant</p>
       </div>
       <div class="topbar-actions">
-        <label class="inline-control">
-          Template
-          <select id="templateSelect"></select>
-        </label>
         <button id="clearAll" class="danger">Clear</button>
       </div>
     </header>
@@ -24,11 +20,18 @@
     <main class="layout">
       <section class="editor card">
         <h2>Resume Builder</h2>
+
+        <div class="template-bar">
+          <label for="templateSelect">Template</label>
+          <select id="templateSelect"></select>
+          <span id="templateCount" class="muted"></span>
+        </div>
+
         <form id="resumeForm">
           <fieldset>
             <legend>Personal Details</legend>
             <label>Full Name <input name="fullName" required placeholder="Alex Morgan" /></label>
-            <label>Professional Title <input name="title" placeholder="Senior Frontend Engineer" /></label>
+            <label>Professional Title <input name="title" placeholder="Frontend Developer" /></label>
             <label>Email <input type="email" name="email" placeholder="alex@email.com" /></label>
             <label>Phone <input name="phone" placeholder="+1 111 222 3333" /></label>
             <label>Location <input name="location" placeholder="San Francisco, CA" /></label>
@@ -70,22 +73,6 @@
             <label>Year <input name="eduYear" placeholder="2021" /></label>
           </fieldset>
 
-          <fieldset>
-            <legend>AI Resume Assistant</legend>
-            <div class="action-row">
-              <button type="button" id="analyzeResume" class="secondary">Analyze Resume</button>
-              <button type="button" id="improveSummary">Improve Summary</button>
-              <button type="button" id="improveHighlights" class="secondary">Improve Highlights</button>
-              <button type="button" id="proGenerate">Generate Pro Profile</button>
-            </div>
-            <label>Ask Assistant
-              <input id="assistantPrompt" placeholder="e.g. How can I improve ATS score for frontend roles?" />
-            </label>
-            <button type="button" id="askAssistant" class="secondary">Ask</button>
-            <div id="assistantResponse" class="assistant-response muted">Assistant tips will appear here.</div>
-            <ul id="suggestionList" class="suggestion-list"></ul>
-          </fieldset>
-
           <div class="action-row">
             <button type="button" id="downloadJson" class="secondary">Download JSON</button>
             <label class="upload-button secondary">
@@ -95,16 +82,27 @@
             <button type="button" id="printResume">Export PDF / Print</button>
           </div>
         </form>
+
+        <section class="card ai-panel">
+          <h3>AI Resume Assistant</h3>
+          <p class="muted">Generates professional suggestions and can rewrite summary/highlights for stronger impact.</p>
+          <div class="ai-actions">
+            <button type="button" id="analyzeResume">Analyze Resume</button>
+            <button type="button" id="improveSummary" class="secondary">Improve Summary</button>
+            <button type="button" id="improveHighlights" class="secondary">Improve Highlights</button>
+          </div>
+          <div id="aiFeedback" class="ai-feedback"></div>
+        </section>
       </section>
 
-      <section class="preview card">
+      <section class="preview card" id="previewContainer">
         <h2>Live Preview</h2>
-        <article id="resumePreview" class="template-cobalt"></article>
+        <article id="resumePreview" class="template-modern"></article>
       </section>
     </main>
 
     <footer>
-      <p>Autosaves locally as you type. 12 templates + AI assistant included.</p>
+      <p>Autosaves locally every time you type.</p>
     </footer>
 
     <script src="script.js"></script>
